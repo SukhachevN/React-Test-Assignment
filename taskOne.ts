@@ -76,6 +76,7 @@ import fetch from 'node-fetch';
 
       while (nextUrl) {
         const response: EpisodeResponse | null = await fetchApi(nextUrl);
+
         if (response) {
           const {
             info: { next },
