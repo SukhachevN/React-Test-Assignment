@@ -13,7 +13,7 @@ export const BooksList: FC<{ books: Book[] }> = ({ books }) => {
 }
 ```
 
-1. Index passed as key prop, if array change then React cant determine which elements changed and which not, as result we get unneccessary rerenders
+1. Index passed as key prop, if array changes, then React cant determine which elements had changed and which not, as result we get unneccessary rerenders, sometimes it can broke logic of application.
 
 2. Need use book.id instead of index as key prop, book.id also must be unique.
 
