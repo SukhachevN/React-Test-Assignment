@@ -40,7 +40,7 @@ const Child: FC = () => {
      - benefit: "open" state can be accessed from any component in project, avoid unnecessary rerenders.
      - drawback: more complex solution, need write more code.
    - Create state in Parent, which duplicate "open" in Child:
-     - benefit: simple, if Child would have more complex state, which including "open" and other properties, and we need only "open" in Parent, it's good way, becouse we will not make logic of Parent component complex becouse of lifting state into Parent.
+     - benefit: simple, if Child would have more complex state, which including "open" and other properties, and we need only "open" in Parent, it's good way, because we will not make logic of Parent component complex because of lifting state into Parent.
      - drawback: same drawbacks as lifting state, same result as lifting state but need extra state.
 
-If Parent doesnt have deep nested childs then use lifting state up to Parent, else use state manager, becouse lifting state is reason of props drilling if deep nested components need "open" state.
+If Parent doesnt have deep nested childs then use lifting state up to Parent, else use state manager, because lifting state is reason of props drilling if deep nested components need "open" state.
