@@ -29,7 +29,7 @@ import fetch from 'node-fetch';
   }
 
   interface EpisodesWithCharacters extends Omit<EpisodeResult, 'characters'> {
-    characters: Character[];
+    characters: (Character | null)[];
   }
 
   interface Info {
@@ -44,13 +44,27 @@ import fetch from 'node-fetch';
     results: EpisodeResult[];
   }
 
-  const getResponse = async <T>(url: string): Promise<T> => {
-    const response = await fetch(url);
+  const getResponse = () => {
+    const cache: Record<string, any> = {};
 
-    const result = await response.json();
+    return async <T>(url: string): Promise<T | null> => {
+      try {
+        if (cache[url]) return cache[url] as Promise<T>;
 
-    return result as Promise<T>;
+        const response = await fetch(url);
+        const result = await response.json();
+
+        cache[url] = result;
+
+        return result as Promise<T>;
+      } catch (e) {
+        // sometimes api fails with 429 status, becouse of so much requests, to avoid it i need catch error here, i tried fix it by adding cache to avoid extra api calls, but sometimes it still fails.
+        return null;
+      }
+    };
   };
+
+  const fetchApi = getResponse();
 
   const getAllEpisodes = async (): Promise<EpisodeResult[]> => {
     try {
@@ -59,13 +73,15 @@ import fetch from 'node-fetch';
       let nextUrl: string | null = baseUrl;
 
       while (nextUrl) {
-        const {
-          info: { next },
-          results,
-        }: EpisodeResponse = await getResponse(nextUrl);
-
-        episodes.push(...results);
-        nextUrl = next;
+        const response: EpisodeResponse | null = await fetchApi(nextUrl);
+        if (response) {
+          const {
+            info: { next },
+            results,
+          } = response as EpisodeResponse;
+          episodes.push(...results);
+          nextUrl = next;
+        }
       }
 
       return episodes;
@@ -78,21 +94,16 @@ import fetch from 'node-fetch';
     episodes: EpisodeResult[]
   ): Promise<EpisodesWithCharacters[]> => {
     try {
-      const mutated: EpisodesWithCharacters[] = [];
+      /* important note: api sometimes fails with 429 status, becouse of so much requests, when api fails i return null */
+      const mutated = await Promise.all(
+        episodes.map(async (episode) => {
+          const characters: (Character | null)[] = await Promise.all(
+            episode.characters.map((link) => fetchApi<Character>(link))
+          );
 
-      for (const episode of episodes) {
-        const mutatedEpisode: EpisodesWithCharacters = {
-          ...episode,
-          characters: [],
-        };
-
-        for (const characterLink of episode.characters) {
-          const character: Character = await getResponse(characterLink);
-
-          mutatedEpisode.characters.push(character);
-        }
-        mutated.push(mutatedEpisode);
-      }
+          return { ...episode, characters };
+        })
+      );
 
       return mutated;
     } catch (e) {
