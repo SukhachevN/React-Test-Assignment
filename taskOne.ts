@@ -58,7 +58,7 @@ import fetch from 'node-fetch';
 
         return result as Promise<T>;
       } catch (e) {
-        // sometimes api fails with 429 status, becouse of so much requests, to avoid it i need catch error here, i tried fix it by adding cache to avoid extra api calls, but sometimes it still fails.
+        /* sometimes api fails with 429 status, becouse of so much requests, to avoid it i need catch error here, i tried fix it by adding cache to avoid extra api calls, but sometimes it still fails. */
         return null;
       }
     };
